@@ -75,8 +75,8 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
         return;
     }
 
-    if (self.requestFinishFormatBlock) {
-        NSString *formattedString = self.requestFinishFormatBlock(operation, self.level);
+    if (self.requestStartFormatBlock) {
+        NSString *formattedString = self.requestStartFormatBlock(operation, self.level);
         if (formattedString) {
             NSLog(@"%@", formattedString);
         }
