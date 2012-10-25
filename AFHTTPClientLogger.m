@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import "AFHTTPClient+Logging.h"
+#import "AFHTTPClientLogger.h"
 #import "AFHTTPRequestOperation.h"
 
 #import <objc/runtime.h>
