@@ -34,5 +34,11 @@ You can also customize the output by supplying your own format blocks:
 AFHTTPClientLogger is available under the MIT license.  See the included
 LICENSE file for details.
 
+## Contact
+
+ - Email: jon@indelible.org
+ - GitHub: [@jparise](https://github.com/jparise)
+ - Twitter: [@jparise](https://twitter.com/jparise)
+
 [AFNetworking]: http://afnetworking.com/
 [AFHTTPRequestOperationLogger]: https://github.com/AFNetworking/AFHTTPRequestOperationLogger
