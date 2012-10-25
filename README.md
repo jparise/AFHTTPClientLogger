@@ -13,21 +13,27 @@ The logger is accessed via the `logger` property of an `AFHTTPClient` object
 instance (simply named `client` in the examples below).  It must be explicitly
 enabled:
 
-    client.logger.enabled = YES;
+```objective-c
+client.logger.enabled = YES;
+```
 
 You can configure the log level to control the output's verbosity:
 
-    client.logger.level = AFHTTPClientLogLevelDebug;
+```objective-c
+client.logger.level = AFHTTPClientLogLevelDebug;
+```
 
 You can also customize the output by supplying your own format blocks:
 
-    [client.logger setRequestStartFormatBlock:^NSString *(AFHTTPRequestOperation *operation, AFHTTPClientLogLevel level) {
-        if (level > AFHTTPClientLogLevelInfo) {
-            return nil;
-        }
+```objective-c
+[client.logger setRequestStartFormatBlock:^NSString *(AFHTTPRequestOperation *operation, AFHTTPClientLogLevel level) {
+    if (level > AFHTTPClientLogLevelInfo) {
+        return nil;
+    }
 
-        return [NSString stringWithFormat:"%@ %@", [operation.request HTTPMethod], [[operation.request URL] absoluteString]];
-    }];
+    return [NSString stringWithFormat:"%@ %@", [operation.request HTTPMethod], [[operation.request URL] absoluteString]];
+}];
+```
 
 ## License
 
