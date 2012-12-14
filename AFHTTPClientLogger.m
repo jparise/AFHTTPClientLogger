@@ -85,7 +85,7 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
     }
 
     id body = nil;
-    if ([operation.request HTTPBody]) {
+    if ([operation.request HTTPBody] && self.level <= AFHTTPClientLogLevelVerbose) {
         if ([operation isKindOfClass:[AFJSONRequestOperation class]]) {
             body = [NSJSONSerialization JSONObjectWithData:[operation.request HTTPBody] options:NSJSONReadingAllowFragments error:nil];
         } else {
