@@ -136,32 +136,32 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
     if (operation.error) {
         switch (self.level) {
             case AFHTTPClientLogLevelDebug:
-                NSLog(@"!! %ld %@ %@: %@", (long)[operation.response statusCode], [operation.request HTTPMethod], [URL absoluteString], operation.error);
+                NSLog(@"!! %ld %@: %@", (long)[operation.response statusCode], [URL absoluteString], operation.error);
                 break;
             case AFHTTPClientLogLevelVerbose:
             case AFHTTPClientLogLevelInfo:
             case AFHTTPClientLogLevelError:
-                NSLog(@"!! %ld %@ %@: %@", (long)[operation.response statusCode], [operation.request HTTPMethod], [URL absoluteString], [operation.error localizedDescription]);
+                NSLog(@"!! %ld %@: %@", (long)[operation.response statusCode], [URL absoluteString], [operation.error localizedDescription]);
                 break;
         }
     } else {
         switch (self.level) {
             case AFHTTPClientLogLevelDebug:
                 if (operation.responseString) {
-                    NSLog(@"<< %ld %@ %@\n%@\n%@", (long)[operation.response statusCode], [operation.request HTTPMethod], [URL absoluteString], [operation.response allHeaderFields], responseObject);
+                    NSLog(@"<< %ld %@\n%@\n%@", (long)[operation.response statusCode], [URL absoluteString], [operation.response allHeaderFields], responseObject);
                 } else {
-                    NSLog(@"<< %ld %@ %@\n%@", (long)[operation.response statusCode], [operation.request HTTPMethod], [URL absoluteString], [operation.response allHeaderFields]);
+                    NSLog(@"<< %ld %@\n%@", (long)[operation.response statusCode], [URL absoluteString], [operation.response allHeaderFields]);
                 }
                 break;
             case AFHTTPClientLogLevelVerbose:
                 if (operation.responseString) {
-                    NSLog(@"<< %ld %@ %@\n%@", (long)[operation.response statusCode], [operation.request HTTPMethod], [URL absoluteString], responseObject);
+                    NSLog(@"<< %ld %@\n%@", (long)[operation.response statusCode], [URL absoluteString], responseObject);
                 } else {
-                    NSLog(@"<< %ld %@ %@", (long)[operation.response statusCode], [operation.request HTTPMethod], [URL absoluteString]);
+                    NSLog(@"<< %ld %@", (long)[operation.response statusCode], [URL absoluteString]);
                 }
                 break;
             case AFHTTPClientLogLevelInfo:
-                NSLog(@"<< %ld %@ %@", (long)[operation.response statusCode], [operation.request HTTPMethod], [URL absoluteString]);
+                NSLog(@"<< %ld %@", (long)[operation.response statusCode], [URL absoluteString]);
                 break;
             default:
                 break;
