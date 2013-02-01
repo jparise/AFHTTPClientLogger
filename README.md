@@ -31,7 +31,7 @@ You can also customize the output by supplying your own format blocks:
         return nil;
     }
 
-    return [NSString stringWithFormat:"%@ %@", [operation.request HTTPMethod], [[operation.request URL] absoluteString]];
+    return [NSString stringWithFormat:@"%@ %@", [operation.request HTTPMethod], [[operation.request URL] absoluteString]];
 }];
 ```
 
