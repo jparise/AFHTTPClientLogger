@@ -1,6 +1,6 @@
 // AFHTTPClientLogger.h
 //
-// Copyright (c) 2012 Jon Parise
+// Copyright (c) 2012-2015 Jon Parise
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#import "AFHTTPClient.h"
+#import <AFNetworking/AFHTTPRequestOperationManager.h>
 
 typedef enum {
     AFHTTPClientLogLevelDebug,
@@ -67,7 +67,7 @@ typedef enum {
 /**
  `AFHTTPClient` category that provides access to the logger.
 */
-@interface AFHTTPClient (Logging)
+@interface AFHTTPRequestOperationManager (Logging)
 
 /**
  The HTTP client's logger. A logger will be created if one doesn't already exist.
