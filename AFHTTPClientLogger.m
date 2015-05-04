@@ -85,7 +85,7 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
     }
 
     id body = nil;
-    if ([operation.request HTTPBody] && self.level <= AFHTTPClientLogLevelVerbose) {
+    if ([operation.request HTTPBody] && self.level <= AFHTTPClientLogLevelDebug) {
         body = [NSJSONSerialization JSONObjectWithData:[operation.request HTTPBody] options:NSJSONReadingAllowFragments error:nil];
         if (body == nil) {
             body = [[NSString alloc] initWithData:[operation.request HTTPBody] encoding:NSUTF8StringEncoding];
@@ -93,14 +93,14 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
     }
 
     switch (self.level) {
-        case AFHTTPClientLogLevelDebug:
+        case AFHTTPClientLogLevelVerbose:
             if (body) {
                 NSLog(@">> %@ %@\n%@\n%@", [operation.request HTTPMethod], [[operation.request URL] absoluteString], [operation.request allHTTPHeaderFields], body);
             } else {
                 NSLog(@">> %@ %@\n%@", [operation.request HTTPMethod], [[operation.request URL] absoluteString], [operation.request allHTTPHeaderFields]);
             }
             break;
-        case AFHTTPClientLogLevelVerbose:
+        case AFHTTPClientLogLevelDebug:
             if (body) {
                 NSLog(@">> %@ %@\n%@", [operation.request HTTPMethod], [[operation.request URL] absoluteString], body);
             } else {
@@ -133,10 +133,10 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
 
     if (operation.error) {
         switch (self.level) {
+            case AFHTTPClientLogLevelVerbose:
             case AFHTTPClientLogLevelDebug:
                 NSLog(@"!! %ld %@: %@", (long)[operation.response statusCode], [URL absoluteString], operation.error);
                 break;
-            case AFHTTPClientLogLevelVerbose:
             case AFHTTPClientLogLevelInfo:
             case AFHTTPClientLogLevelError:
                 NSLog(@"!! %ld %@: %@", (long)[operation.response statusCode], [URL absoluteString], [operation.error localizedDescription]);
@@ -144,14 +144,14 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
         }
     } else {
         switch (self.level) {
-            case AFHTTPClientLogLevelDebug:
+            case AFHTTPClientLogLevelVerbose:
                 if (operation.responseString) {
                     NSLog(@"<< %ld %@\n%@\n%@", (long)[operation.response statusCode], [URL absoluteString], [operation.response allHeaderFields], operation.responseObject);
                 } else {
                     NSLog(@"<< %ld %@\n%@", (long)[operation.response statusCode], [URL absoluteString], [operation.response allHeaderFields]);
                 }
                 break;
-            case AFHTTPClientLogLevelVerbose:
+            case AFHTTPClientLogLevelDebug:
                 if (operation.responseString) {
                     NSLog(@"<< %ld %@\n%@", (long)[operation.response statusCode], [URL absoluteString], operation.responseObject);
                 } else {
