@@ -8,6 +8,7 @@ Pod::Spec.new do |s|
   s.source   = { :git => 'https://github.com/jparise/AFHTTPClientLogger.git', :tag => s.version }
   s.requires_arc = true
 
+  s.dependency 'AFNetworking', '>= 2.3'
   s.source_files = 'AFHTTPClientLogger.{h,m}'
 
   s.ios.deployment_target = '6.0'
