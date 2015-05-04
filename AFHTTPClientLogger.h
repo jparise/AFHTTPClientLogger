@@ -65,7 +65,7 @@ typedef enum {
 #pragma mark -
 
 /**
- `AFHTTPClient` category that provides access to the logger.
+ `AFHTTPRequestOperationManager` category that provides access to the logger.
 */
 @interface AFHTTPRequestOperationManager (Logging)
 
