@@ -38,12 +38,6 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
 
 @implementation AFHTTPClientLogger
 
-@synthesize baseURLString = _baseURLString;
-@synthesize requestStartFormatBlock = _requestStartFormatBlock;
-@synthesize requestFinishFormatBlock = _requestFinishFormatBlock;
-@synthesize enabled = _enabled;
-@synthesize level = _level;
-
 - (instancetype)initWithBaseURL:(NSURL *)baseURL {
     if ((self = [super init])) {
         self.baseURLString = [baseURL absoluteString];
