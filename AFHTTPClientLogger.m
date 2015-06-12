@@ -125,7 +125,19 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
 
     NSURL *URL = (operation.response) ? [operation.response URL] : [operation.request URL];
 
-    if (operation.error) {
+    if (operation.error && operation.error.code == NSURLErrorCancelled) {
+        switch (self.level) {
+            case AFHTTPClientLogLevelVerbose:
+                NSLog(@"Cancelled %@: %@", [URL absoluteString], operation.error);
+                break;
+            case AFHTTPClientLogLevelDebug:
+            case AFHTTPClientLogLevelInfo:
+                NSLog(@"Cancelled %@: %@", [URL absoluteString], [operation.error localizedDescription]);
+                break;
+            default:
+                break;
+        }
+    } else if (operation.error) {
         switch (self.level) {
             case AFHTTPClientLogLevelVerbose:
             case AFHTTPClientLogLevelDebug:
