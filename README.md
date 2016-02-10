@@ -7,6 +7,8 @@ instance basis.
 It is conceptually similar to [AFHTTPRequestOperationLogger][], which works
 globally across all `AFHTTPRequestOperationManager` instances.
 
+AFHTTPClientLogger supports logging via [CocoaLumberjack][] and will use its logging methods over `NSLog` if it's available.
+
 ## Usage
 
 The logger is accessed via the `logger` property of an `AFHTTPRequestOperationManager` object
@@ -48,3 +50,4 @@ LICENSE file for details.
 
 [AFNetworking]: http://afnetworking.com/
 [AFHTTPRequestOperationLogger]: https://github.com/AFNetworking/AFHTTPRequestOperationLogger
+[CocoaLumberjack]: https://github.com/CocoaLumberjack/CocoaLumberjack
