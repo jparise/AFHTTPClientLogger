@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name     = 'AFHTTPClientLogger'
-  s.version  = '0.6.1'
+  s.version  = '0.7.0'
   s.license  = 'MIT'
   s.authors  = { 'Jon Parise' => 'jon@indelible.org' }
   s.summary  = 'AFNetworking Extension for request logging.'
