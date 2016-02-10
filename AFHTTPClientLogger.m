@@ -26,12 +26,29 @@
 
 #import <objc/runtime.h>
 
+
+#if __has_include(<CocoaLumberjack/DDLogMacros.h>)
+#import <CocoaLumberjack/DDLogMacros.h>
+// Global log level for the whole library, not per-file.
+const DDLogLevel ddLogLevel = DDLogLevelVerbose;
+#else
+#define DDLogError(...)   NSLog(__VA_ARGS__)
+#define DDLogWarn(...)    NSLog(__VA_ARGS__)
+#define DDLogInfo(...)    NSLog(__VA_ARGS__)
+#define DDLogDebug(...)   NSLog(__VA_ARGS__)
+#define DDLogVerbose(...) NSLog(__VA_ARGS__)
+#endif
+
+
 typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *operation, AFHTTPClientLogLevel level);
 
 @interface AFHTTPClientLogger ()
 @property (readwrite, nonatomic) NSString *baseURLString;
 @property (readwrite, nonatomic, copy) AFHTTPClientLoggerFormatBlock requestStartFormatBlock;
 @property (readwrite, nonatomic, copy) AFHTTPClientLoggerFormatBlock requestFinishFormatBlock;
+@property (readwrite, nonatomic, strong) NSOperationQueue *notificationHandlerQueue;
+@property (readwrite, nonatomic, strong) id <NSObject> startNotificationObserver;
+@property (readwrite, nonatomic, strong) id <NSObject> finishNotificationObserver;
 @end
 
 #pragma mark -
@@ -40,24 +57,46 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
 
 - (instancetype)initWithBaseURL:(NSURL *)baseURL {
     if ((self = [super init])) {
-        self.baseURLString = [baseURL absoluteString];
-        self.level = AFHTTPClientLogLevelInfo;
+        _baseURLString = [baseURL absoluteString];
+        _level = AFHTTPClientLogLevelInfo;
+        _notificationHandlerQueue = [[NSOperationQueue alloc] init];
     }
 
     return self;
 }
 
 - (void)dealloc {
-    [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [_notificationHandlerQueue cancelAllOperations];
+    [[NSNotificationCenter defaultCenter] removeObserver:_startNotificationObserver name:AFNetworkingOperationDidStartNotification object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:_finishNotificationObserver name:AFNetworkingOperationDidFinishNotification object:nil];
 }
 
 - (void)setEnabled:(BOOL)enabled {
     if (enabled != _enabled) {
         if (enabled) {
-            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(operationDidStart:) name:AFNetworkingOperationDidStartNotification object:nil];
-            [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(operationDidFinish:) name:AFNetworkingOperationDidFinishNotification object:nil];
+            // weakify and strongify
+            __weak typeof(self) weakSelf = self;
+            self.startNotificationObserver = [[NSNotificationCenter defaultCenter] addObserverForName:AFNetworkingOperationDidStartNotification
+                                                                object:nil
+                                                                 queue:self.notificationHandlerQueue
+                                                            usingBlock:^(NSNotification * _Nonnull notification) {
+                                                                AFHTTPClientLogger *strongSelf = weakSelf;
+                                                                [strongSelf operationDidStart:notification];
+                                                            }];
+            self.finishNotificationObserver = [[NSNotificationCenter defaultCenter] addObserverForName:AFNetworkingOperationDidFinishNotification
+                                                              object:nil
+                                                               queue:self.notificationHandlerQueue
+                                                          usingBlock:^(NSNotification * _Nonnull notification) {
+                                                              AFHTTPClientLogger *strongSelf = weakSelf;
+                                                              [strongSelf operationDidFinish:notification];
+                                                          }];
         } else {
-            [[NSNotificationCenter defaultCenter] removeObserver:self];
+            if (self.startNotificationObserver) {
+                [[NSNotificationCenter defaultCenter] removeObserver:self.startNotificationObserver name:AFNetworkingOperationDidStartNotification object:nil];
+            }
+            if (self.finishNotificationObserver) {
+                [[NSNotificationCenter defaultCenter] removeObserver:self.finishNotificationObserver name:AFNetworkingOperationDidFinishNotification object:nil];
+            }
         }
 
         _enabled = enabled;
@@ -73,15 +112,16 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
     if (self.requestStartFormatBlock) {
         NSString *formattedString = self.requestStartFormatBlock(operation, self.level);
         if (formattedString) {
-            NSLog(@"%@", formattedString);
+            DDLogError(@"%@", formattedString);
         }
         return;
     }
 
     id body = nil;
-    if ([operation.request HTTPBody] && self.level <= AFHTTPClientLogLevelDebug) {
-        body = [NSJSONSerialization JSONObjectWithData:[operation.request HTTPBody] options:NSJSONReadingAllowFragments error:nil];
-        if (body == nil) {
+    if ([operation.request HTTPBody] && self.level <= AFHTTPClientLogLevelVerbose) {
+        NSError *error = nil;
+        body = [NSJSONSerialization JSONObjectWithData:[operation.request HTTPBody] options:NSJSONReadingAllowFragments error:&error];
+        if (error) {
             body = [[NSString alloc] initWithData:[operation.request HTTPBody] encoding:NSUTF8StringEncoding];
         }
     }
@@ -89,20 +129,20 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
     switch (self.level) {
         case AFHTTPClientLogLevelVerbose:
             if (body) {
-                NSLog(@">> %@ %@\n%@\n%@", [operation.request HTTPMethod], [[operation.request URL] absoluteString], [operation.request allHTTPHeaderFields], body);
+              DDLogVerbose(@">> %@ %@\n%@\n%@", [operation.request HTTPMethod], [[operation.request URL] absoluteString], [operation.request allHTTPHeaderFields], body);
             } else {
-                NSLog(@">> %@ %@\n%@", [operation.request HTTPMethod], [[operation.request URL] absoluteString], [operation.request allHTTPHeaderFields]);
+              DDLogVerbose(@">> %@ %@\n%@", [operation.request HTTPMethod], [[operation.request URL] absoluteString], [operation.request allHTTPHeaderFields]);
             }
             break;
         case AFHTTPClientLogLevelDebug:
             if (body) {
-                NSLog(@">> %@ %@\n%@", [operation.request HTTPMethod], [[operation.request URL] absoluteString], body);
+              DDLogDebug(@">> %@ %@\n%@", [operation.request HTTPMethod], [[operation.request URL] absoluteString], body);
             } else {
-                NSLog(@">> %@ %@", [operation.request HTTPMethod], [[operation.request URL] absoluteString]);
+              DDLogDebug(@">> %@ %@", [operation.request HTTPMethod], [[operation.request URL] absoluteString]);
             }
             break;
         case AFHTTPClientLogLevelInfo:
-            NSLog(@">> %@ %@", [operation.request HTTPMethod], [[operation.request URL] absoluteString]);
+            DDLogInfo(@">> %@ %@", [operation.request HTTPMethod], [[operation.request URL] absoluteString]);
             break;
         default:
             break;
@@ -118,54 +158,55 @@ typedef NSString * (^AFHTTPClientLoggerFormatBlock)(AFHTTPRequestOperation *oper
     if (self.requestFinishFormatBlock) {
         NSString *formattedString = self.requestFinishFormatBlock(operation, self.level);
         if (formattedString) {
-            NSLog(@"%@", formattedString);
+            DDLogError(@"%@", formattedString);
         }
         return;
     }
 
     NSURL *URL = (operation.response) ? [operation.response URL] : [operation.request URL];
+    id responseObject = operation.responseObject;
 
     if (operation.error && operation.error.code == NSURLErrorCancelled) {
         switch (self.level) {
-            case AFHTTPClientLogLevelVerbose:
-                NSLog(@"Cancelled %@: %@", [URL absoluteString], operation.error);
-                break;
-            case AFHTTPClientLogLevelDebug:
-            case AFHTTPClientLogLevelInfo:
-                NSLog(@"Cancelled %@: %@", [URL absoluteString], [operation.error localizedDescription]);
-                break;
-            default:
-                break;
+          case AFHTTPClientLogLevelVerbose:
+              DDLogVerbose(@"Canceled %@: %@", [URL absoluteString], operation.error);
+              break;
+          case AFHTTPClientLogLevelDebug:
+          case AFHTTPClientLogLevelInfo:
+              DDLogDebug(@"Canceled %@: %@", [URL absoluteString], [operation.error localizedDescription]);
+              break;
+          default:
+              break;
         }
     } else if (operation.error) {
         switch (self.level) {
             case AFHTTPClientLogLevelVerbose:
-            case AFHTTPClientLogLevelDebug:
-                NSLog(@"!! %ld %@: %@", (long)[operation.response statusCode], [URL absoluteString], operation.error);
+                DDLogInfo(@"!! %ld %@: %@", (long)[operation.response statusCode], [URL absoluteString], operation.error);
                 break;
+            case AFHTTPClientLogLevelDebug:
             case AFHTTPClientLogLevelInfo:
             case AFHTTPClientLogLevelError:
-                NSLog(@"!! %ld %@: %@", (long)[operation.response statusCode], [URL absoluteString], [operation.error localizedDescription]);
+                DDLogError(@"!! %ld %@: %@", (long)[operation.response statusCode], [URL absoluteString], [operation.error localizedDescription]);
                 break;
         }
     } else {
         switch (self.level) {
             case AFHTTPClientLogLevelVerbose:
                 if (operation.responseString) {
-                    NSLog(@"<< %ld %@\n%@\n%@", (long)[operation.response statusCode], [URL absoluteString], [operation.response allHeaderFields], operation.responseObject);
+                    DDLogVerbose(@"<< %ld %@\n%@\n%@", (long)[operation.response statusCode], [URL absoluteString], [operation.response allHeaderFields], responseObject);
                 } else {
-                    NSLog(@"<< %ld %@\n%@", (long)[operation.response statusCode], [URL absoluteString], [operation.response allHeaderFields]);
+                    DDLogVerbose(@"<< %ld %@\n%@", (long)[operation.response statusCode], [URL absoluteString], [operation.response allHeaderFields]);
                 }
                 break;
             case AFHTTPClientLogLevelDebug:
                 if (operation.responseString) {
-                    NSLog(@"<< %ld %@\n%@", (long)[operation.response statusCode], [URL absoluteString], operation.responseObject);
+                    DDLogDebug(@"<< %ld %@\n%@", (long)[operation.response statusCode], [URL absoluteString], responseObject);
                 } else {
-                    NSLog(@"<< %ld %@", (long)[operation.response statusCode], [URL absoluteString]);
+                    DDLogDebug(@"<< %ld %@", (long)[operation.response statusCode], [URL absoluteString]);
                 }
                 break;
             case AFHTTPClientLogLevelInfo:
-                NSLog(@"<< %ld %@", (long)[operation.response statusCode], [URL absoluteString]);
+                DDLogInfo(@"<< %ld %@", (long)[operation.response statusCode], [URL absoluteString]);
                 break;
             default:
                 break;
